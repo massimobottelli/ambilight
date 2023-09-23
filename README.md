@@ -19,3 +19,4 @@ RPi PIN: R = 17; G = 22; B = 24; 5V = 2; GND = 6
 3x MOSFET IRLZ44N: PIN 1 (L) = to RPi (R/G/B); PIN 2 (M) = to LED (R/B/B); PIN 3 (R)  = to GND
 
 
+More info on https://massimobottelli.it/coding/diy-ambilight/
