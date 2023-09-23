@@ -3,6 +3,17 @@ from PIL import Image
 import tempfile
 import cv2
 import numpy as np
+import paho.mqtt.client as mqtt
+import config
+
+# Set webcam id
+CAM_ID = 1
+
+# Access the constants from the config module
+broker_ip = config.broker_ip
+topic = config.topic
+username = config.username
+password = config.password
 
 
 def get_color(current_frame):
@@ -34,10 +45,32 @@ def resize_image(webcam_image, new_width):
     return resized_image
 
 
+def publish_mqtt(color_R, color_G, color_B):
+    try:
+        # Publish data over MQTT
+        client = mqtt.Client()
+        client.username_pw_set(username, password)
+        client.connect(broker_ip)
+        message = (
+            str(color_R)
+            + ","
+            + str(color_G)
+            + ","
+            + str(color_B)
+        )
+        client.publish(topic, message)
+        client.disconnect()
+        return True
+    except Exception as e:
+        # Handle exceptions
+        print("Error:", e)
+        return False
+
+
 # Main loop
 
 # Create a VideoCapture object
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(CAM_ID)
 
 while True:
 
@@ -69,6 +102,22 @@ while True:
 
     # Display the frame with the border
     cv2.imshow("Webcam", background)
+
+    # Publish RBG color via MQTT
+    color_R, color_G, color_B = dominant
+
+    # Calibrate
+    multiplier_R = 1
+    multiplier_G = 3
+    multiplier_B = 25
+
+    color_R = int(color_R / multiplier_R)
+    color_G = int(color_G / multiplier_G)
+    color_B = int(color_B / multiplier_B)
+
+    publish_mqtt(color_R, color_G, color_B)
+
+    print(color_R, color_G, color_B)
 
     # Check for the 'q' key to exit the loop
     if cv2.waitKey(1) & 0xFF == ord('q'):
